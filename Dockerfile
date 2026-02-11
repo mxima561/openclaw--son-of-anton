@@ -109,7 +109,7 @@ USER openclaw
 # Install Homebrew (Linuxbrew) - must be done as non-root user
 RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || true
 
-# Install nvm, Node.js LTS, pnpm, and openclaw
+# Install nvm, Node.js LTS, pnpm, and openclaw (from git for auto-update support)
 RUN export SHELL=/bin/bash  && export NVM_DIR="$HOME/.nvm" \
   && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash \
   && . "$NVM_DIR/nvm.sh" \
@@ -120,7 +120,13 @@ RUN export SHELL=/bin/bash  && export NVM_DIR="$HOME/.nvm" \
   && pnpm setup \
   && export PNPM_HOME="/home/openclaw/.local/share/pnpm" \
   && export PATH="$PNPM_HOME:$PATH" \
-  && pnpm add -g "openclaw@${OPENCLAW_VERSION}"
+  && git clone https://github.com/openclaw/openclaw.git /home/openclaw/openclaw \
+  && cd /home/openclaw/openclaw \
+  && git checkout "v${OPENCLAW_VERSION}" 2>/dev/null || true \
+  && pnpm install \
+  && pnpm ui:build \
+  && pnpm build \
+  && pnpm link --global
 
 # Switch back to root for final setup
 USER root
