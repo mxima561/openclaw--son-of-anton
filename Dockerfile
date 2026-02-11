@@ -53,6 +53,7 @@ RUN set -eux; \
   cron \
   build-essential \
   procps \
+  python3-pip \
   xz-utils; \
   # Install restic
   RESTIC_ARCH="$( [ "$TARGETARCH" = "arm64" ] && echo arm64 || echo amd64 )"; \
@@ -133,6 +134,9 @@ USER root
 
 # Fix ownership for any files in home directories (in case ubuntu user exists)
 RUN if [ -d /home/ubuntu ]; then chown -R ubuntu:ubuntu /home/ubuntu; fi
+
+# Install LiteLLM proxy for AWS Bedrock bridging
+RUN pip3 install --break-system-packages "litellm[proxy]"
 
 # Generate initial package selections list (for restore capability)
 RUN dpkg --get-selections > /etc/openclaw/dpkg-selections

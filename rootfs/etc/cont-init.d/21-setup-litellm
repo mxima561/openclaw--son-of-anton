@@ -1,0 +1,51 @@
+#!/command/with-contenv bash
+# Setup LiteLLM proxy configuration for AWS Bedrock
+source /etc/s6-overlay/lib/env-utils.sh
+
+set -e
+source_env_prefix LITELLM_
+
+if [ "${ENABLE_LITELLM:-false}" != "true" ]; then
+  echo "[litellm-setup] LiteLLM disabled, skipping"
+  exit 0
+fi
+
+CONFIG_FILE="/data/.openclaw/litellm-config.yaml"
+
+# Only generate config if it doesn't already exist (persisted via /data volume)
+if [ -f "$CONFIG_FILE" ]; then
+  echo "[litellm-setup] Config already exists at $CONFIG_FILE, skipping generation"
+  exit 0
+fi
+
+# Require AWS credentials
+if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+  echo "[litellm-setup] WARNING: AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY not set"
+  echo "[litellm-setup] LiteLLM config not generated. Set AWS credentials and redeploy."
+  exit 0
+fi
+
+AWS_REGION="${AWS_REGION_NAME:-us-east-1}"
+
+echo "[litellm-setup] Generating LiteLLM config at $CONFIG_FILE"
+cat > "$CONFIG_FILE" << LITEOF
+litellm_settings:
+  drop_params: true
+
+model_list:
+  - model_name: claude-opus-4-5
+    litellm_params:
+      model: bedrock/global.anthropic.claude-opus-4-5-20251101-v1:0
+      aws_access_key_id: ${AWS_ACCESS_KEY_ID}
+      aws_secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
+      aws_region_name: ${AWS_REGION}
+  - model_name: claude-opus-4-6
+    litellm_params:
+      model: bedrock/global.anthropic.claude-opus-4-6-v1
+      aws_access_key_id: ${AWS_ACCESS_KEY_ID}
+      aws_secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
+      aws_region_name: ${AWS_REGION}
+LITEOF
+
+chown openclaw:openclaw "$CONFIG_FILE"
+echo "[litellm-setup] LiteLLM config generated successfully"

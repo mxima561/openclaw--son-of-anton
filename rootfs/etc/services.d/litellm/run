@@ -1,0 +1,20 @@
+#!/bin/bash
+# LiteLLM proxy for AWS Bedrock bridging (enabled via ENABLE_LITELLM=true)
+source /etc/s6-overlay/lib/env-utils.sh
+source_env_prefix LITELLM_
+
+if [ "${ENABLE_LITELLM:-false}" != "true" ]; then
+  echo "[litellm] Disabled (set ENABLE_LITELLM=true to enable)"
+  s6-svc -Od .
+  exit 0
+fi
+
+CONFIG_FILE="/data/.openclaw/litellm-config.yaml"
+if [ ! -f "$CONFIG_FILE" ]; then
+  echo "[litellm] No config found at $CONFIG_FILE" >&2
+  s6-svc -Od .
+  exit 1
+fi
+
+echo "[litellm] Starting LiteLLM proxy on port 4001..."
+exec litellm --config "$CONFIG_FILE" --port 4001
