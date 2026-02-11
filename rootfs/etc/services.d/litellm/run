@@ -16,5 +16,9 @@ if [ ! -f "$CONFIG_FILE" ]; then
   exit 1
 fi
 
+# Unset DATABASE_URL to prevent LiteLLM from trying to connect to prisma/postgres
+# (LiteLLM auto-detects DATABASE_URL and requires prisma module for DB features)
+unset DATABASE_URL
+
 echo "[litellm] Starting LiteLLM proxy on port 4001..."
 exec litellm --config "$CONFIG_FILE" --port 4001
