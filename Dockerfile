@@ -30,6 +30,8 @@ ENV S6_KEEP_ENV=1
 ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2
 ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
 ENV S6_LOGGING=0
+ENV CHROME_PATH=/usr/bin/google-chrome-stable
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Install OS deps + Node.js + sshd + restic + s6-overlay
 RUN set -eux; \
@@ -55,7 +57,6 @@ RUN set -eux; \
   procps \
   python3-pip \
   xz-utils \
-  chromium \
   fonts-liberation \
   libasound2t64 \
   libatk-bridge2.0-0 \
@@ -71,6 +72,10 @@ RUN set -eux; \
   libxdamage1 \
   libxrandr2 \
   xdg-utils; \
+  # Install Google Chrome (Ubuntu Noble snap-based chromium doesn't work in Docker)
+  wget -q -O /tmp/google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; \
+  apt-get install -y /tmp/google-chrome.deb || true; \
+  rm -f /tmp/google-chrome.deb; \
   # Install restic
   RESTIC_ARCH="$( [ "$TARGETARCH" = "arm64" ] && echo arm64 || echo amd64 )"; \
   wget -q -O /tmp/restic.bz2 \
