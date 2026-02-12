@@ -83,10 +83,13 @@ fi
 persist_env_var OPENCLAW_ OPENCLAW_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN"
 echo "[generate-config] Gateway token configured (OPENCLAW_GATEWAY_TOKEN)"
 
-# Start with default config as base
-if [ -f "$DEFAULT_CONFIG" ]; then
+# Merge default config with existing config (preserves user-added keys like channels, browser, etc.)
+if [ -f "$CONFIG_FILE" ] && [ -f "$DEFAULT_CONFIG" ]; then
+  echo "[generate-config] Merging default config into existing config (preserving user additions)"
+  jq -s '.[0] * .[1]' "$DEFAULT_CONFIG" "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" && mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
+elif [ -f "$DEFAULT_CONFIG" ]; then
   cp "$DEFAULT_CONFIG" "$CONFIG_FILE"
-  echo "[generate-config] Using default config from $DEFAULT_CONFIG"
+  echo "[generate-config] Using default config from $DEFAULT_CONFIG (first run)"
 else
   # Fallback minimal config if default doesn't exist
   echo '{"gateway": {"mode": "local"}}' > "$CONFIG_FILE"
