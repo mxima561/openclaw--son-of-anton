@@ -21,4 +21,4 @@ fi
 unset DATABASE_URL
 
 echo "[litellm] Starting LiteLLM proxy on port 4001..."
-exec litellm --config "$CONFIG_FILE" --port 4001
+exec litellm --config "$CONFIG_FILE" --port 4001 --drop_not_supported_params

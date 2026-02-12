@@ -54,7 +54,23 @@ RUN set -eux; \
   build-essential \
   procps \
   python3-pip \
-  xz-utils; \
+  xz-utils \
+  chromium \
+  fonts-liberation \
+  libasound2t64 \
+  libatk-bridge2.0-0 \
+  libatk1.0-0 \
+  libcups2 \
+  libdbus-1-3 \
+  libdrm2 \
+  libgbm1 \
+  libgtk-3-0 \
+  libnspr4 \
+  libnss3 \
+  libxcomposite1 \
+  libxdamage1 \
+  libxrandr2 \
+  xdg-utils; \
   # Install restic
   RESTIC_ARCH="$( [ "$TARGETARCH" = "arm64" ] && echo arm64 || echo amd64 )"; \
   wget -q -O /tmp/restic.bz2 \
